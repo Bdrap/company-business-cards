@@ -1,0 +1,8 @@
+{
+  "name": "card-studio-functions",
+  "private": true,
+  "description": "Backend dependencies for Cloudflare Pages Functions only — the frontend (index.html) stays CDN-only/bundler-free.",
+  "dependencies": {
+    "@clerk/backend": "^3.17.2"
+  }
+}
