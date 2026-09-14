@@ -5,13 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Card Studio — Business Cards & Email Signatures</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-<!-- Clerk auth widget. Replace the publishable key + script host with your own instance's
-     snippet from Clerk Dashboard -> Configure -> API Keys -> Quick Copy -> JavaScript. -->
+<!-- Clerk auth widget (instance: daring-lioness-5048). Clerk v6 ships its UI
+     components as a separate bundle from the core SDK — both must load, in
+     order (defer, not async), before Clerk.load() runs. -->
 <script
-  async
+  defer
   crossorigin="anonymous"
-  data-clerk-publishable-key="pk_test_REPLACE_ME"
-  src="https://REPLACE-ME.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js"
+  src="https://daring-lioness-5048.clerk.accounts.dev/npm/@clerk/ui@1/dist/ui.browser.js"
+  type="text/javascript"
+></script>
+<script
+  defer
+  crossorigin="anonymous"
+  data-clerk-publishable-key="pk_test_ZGFyaW5nLWxpb25lc3MtNTA0OC5jbGVyay5hY2NvdW50cy5kZXYk"
+  src="https://daring-lioness-5048.clerk.accounts.dev/npm/@clerk/clerk-js@6/dist/clerk.browser.js"
   type="text/javascript"
 ></script>
 <style>
@@ -662,7 +669,9 @@ async function authedFetch(path, options){
 }
 
 async function initClerk(){
-  await window.Clerk.load();
+  // window.__internal_ClerkUICtor comes from the @clerk/ui script tag above —
+  // Clerk v6 requires it to be handed in explicitly for mountSignIn/mountUserButton to work.
+  await window.Clerk.load({ ui: { ClerkUI: window.__internal_ClerkUICtor } });
 
   const signedOutView = document.getElementById('signedOutView');
   const appRoot = document.getElementById('appRoot');
