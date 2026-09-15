@@ -34,10 +34,11 @@ export function rowToCard(row) {
   };
 }
 
-// Client-side there's already a ~300KB guidance note on the logo upload
-// field; this is the hard server-side backstop so a stray oversized image
-// can't blow past D1's per-column size limit.
-export const MAX_LOGO_BYTES = 400 * 1024;
+// The client resizes every uploaded logo to at most 480px on its longest
+// side before it ever reaches here, so this is just a hard backstop (e.g.
+// against a resize failure falling back to the original file) to keep a
+// stray oversized image from blowing past D1's per-column size limit.
+export const MAX_LOGO_BYTES = 800 * 1024;
 
 export function validateBody(body) {
   if (body.logoSrc && body.logoSrc.length > MAX_LOGO_BYTES) {

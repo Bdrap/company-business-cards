@@ -524,7 +524,7 @@
             <input type="file" id="f-logo" accept="image/png,image/jpeg,image/svg+xml,image/webp">
             <button type="button" class="link-btn" id="removeLogoBtn" style="display:none;">Remove</button>
           </div>
-          <div class="dir-note">PNG or SVG with a transparent background works best (under ~300KB). Leave empty to show your company name as text instead.</div>
+          <div class="dir-note">PNG or SVG with a transparent background works best — any size or resolution is fine, it's automatically resized for the card. Leave empty to show your company name as text instead.</div>
 
           <div id="editingNotice" class="editing-notice" style="display:none;">
             Editing a saved card. <button type="button" class="link-btn" id="newContactBtn">Start a new card instead</button>
@@ -822,6 +822,30 @@ let currentLogoLoaded = false;
 let hasCustomLogo = false;
 let currentLogoSrc = null;
 
+// Logos are only ever drawn at up to ~260px wide on the card, so a source
+// image far bigger than that is pure waste — it bloats the saved card and
+// visibly slows down every render. Re-encoding through a canvas, capped at
+// a generous 2-3x that draw size, lets people upload big original files
+// (large phone-camera exports, etc.) while keeping what's actually stored
+// and rendered small and fast.
+const LOGO_MAX_DIM = 480;
+function resizeLogoDataUrl(sourceDataUrl){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const scale = Math.min(1, LOGO_MAX_DIM / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.max(1, Math.round(img.naturalWidth * scale));
+      const h = Math.max(1, Math.round(img.naturalHeight * scale));
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.onerror = ()=> reject(new Error('Could not read that image file.'));
+    img.src = sourceDataUrl;
+  });
+}
+
 function setCustomLogo(src){
   hasCustomLogo = true;
   currentLogoSrc = src;
@@ -849,7 +873,14 @@ document.getElementById('f-logo').addEventListener('change', e=>{
   const file = e.target.files && e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = ()=> setCustomLogo(reader.result);
+  reader.onload = async ()=>{
+    try{
+      setCustomLogo(await resizeLogoDataUrl(reader.result));
+    } catch(err){
+      console.error('Logo resize failed, using original file', err);
+      setCustomLogo(reader.result);
+    }
+  };
   reader.readAsDataURL(file);
 });
 document.getElementById('removeLogoBtn').addEventListener('click', ()=>{
