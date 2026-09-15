@@ -1041,14 +1041,24 @@ function drawCardToContext(targetCtx, data, theme, logoOverride){
   });
   targetCtx.textBaseline = 'alphabetic';
 
-  // logo + tagline, below the contact rows
+  // QR block geometry (drawn further down, but the logo box below needs to
+  // know where it is so a big logo never grows into it)
+  const qrSize = 132;
+  const qrX = W - pad - qrSize + 16;
+  const qrY = H - pad - qrSize + 4;
+
+  // logo + tagline, below the contact rows — the logo is allowed to use the
+  // whole space between the contact rows, the left edge, the QR block and
+  // the footer, scaling up to fill whatever room a given aspect ratio allows
+  // (contain-fit, never stretched, never overlapping the QR code or footer)
   const logoTop = rowStartY + rows.length*rowGap + 30;
   let tagBaseline = logoTop + 44;
   const activeLogoImg = logoOverride !== undefined
     ? logoOverride
     : (hasCustomLogo && currentLogoLoaded ? currentLogoImg : (logoLoaded ? logoImg : null));
   if(activeLogoImg){
-    const logoMaxW = 260, logoMaxH = 52;
+    const logoMaxW = (qrX - 24) - pad;
+    const logoMaxH = (H - pad) - logoTop - (tagline ? 40 : 0);
     const scale = Math.min(logoMaxW/activeLogoImg.naturalWidth, logoMaxH/activeLogoImg.naturalHeight);
     const lw = activeLogoImg.naturalWidth*scale, lh = activeLogoImg.naturalHeight*scale;
     targetCtx.drawImage(activeLogoImg, pad, logoTop, lw, lh);
@@ -1068,11 +1078,6 @@ function drawCardToContext(targetCtx, data, theme, logoOverride){
     for(const ch of tagline){ targetCtx.fillText(ch, tx, tagBaseline); tx += targetCtx.measureText(ch).width + 1.4; }
     targetCtx.restore();
   }
-
-  // QR block, bottom-right
-  const qrSize = 132;
-  const qrX = W - pad - qrSize + 16;
-  const qrY = H - pad - qrSize + 4;
 
   const vcard = buildVCardFromData(data);
   const qrTemp = document.createElement('canvas');
