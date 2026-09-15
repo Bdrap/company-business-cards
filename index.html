@@ -296,6 +296,11 @@
     margin-top:12px;
     font-family:var(--mono);
   }
+  .qr-scan-btn{
+    max-width:560px;
+    margin:14px auto 0;
+    display:block;
+  }
 
   /* ---------- Save / editing status ---------- */
   .editing-notice{
@@ -547,6 +552,7 @@
           <canvas id="cardCanvas" width="1050" height="600"></canvas>
         </div>
         <div class="flip-note">QR code encodes a scannable vCard — the holder's contact saves straight to a phone.</div>
+        <button type="button" class="btn secondary qr-scan-btn" id="saveContactBtn">Add to Contacts (same as scanning the QR code)</button>
       </div>
 
     </div>
@@ -1367,7 +1373,7 @@ document.getElementById('downloadCardBtn').addEventListener('click', ()=>{
   link.click();
 });
 
-document.getElementById('downloadVcfBtn').addEventListener('click', ()=>{
+function downloadVCardFile(){
   const vcard = buildVCard();
   const blob = new Blob([vcard], { type: 'text/vcard' });
   const url = URL.createObjectURL(blob);
@@ -1378,7 +1384,11 @@ document.getElementById('downloadVcfBtn').addEventListener('click', ()=>{
   link.href = url;
   link.click();
   URL.revokeObjectURL(url);
-});
+}
+document.getElementById('downloadVcfBtn').addEventListener('click', downloadVCardFile);
+// Same vCard the QR code encodes — lets someone add the contact straight
+// from the preview page instead of needing to scan the printed/PNG code.
+document.getElementById('saveContactBtn').addEventListener('click', downloadVCardFile);
 
 /* ---------------- my cards ----------------
    Each signed-in user's cards live in Cloudflare D1, scoped server-side to
